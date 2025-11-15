@@ -85,7 +85,7 @@ export default function HighlightsPage() {
         {/* Hero Section */}
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
           <Image
-            src="/highlights-hero.jpg" // Placeholder for highlights hero image
+            src="/groupphoto4.jpg" // Placeholder for highlights hero image
             alt="Panthers Academy Highlights"
             fill
             className="object-cover brightness-50"
@@ -156,7 +156,7 @@ export default function HighlightsPage() {
         {/* Highlights Grid */}
         <section className="px-6 pb-20 max-w-7xl mx-auto">
           <motion.div
-            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}

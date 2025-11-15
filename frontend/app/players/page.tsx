@@ -86,10 +86,11 @@ export default function PlayersPage() {
 
       <main className="bg-gradient-to-br from-slate-900 via-black to-amber-900 text-white relative overflow-hidden">
         {/* Hero Section */}
-        <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
+        
+        <section className="relative h-[70vh] flex items-center justify-center overflow-hidden mt-15">
           <div className="absolute inset-0">
             <Image
-              src="/image2.jpg" // Use a dynamic team hero image
+              src="/groupphoto1.jpg" // Use a dynamic team hero image
               alt="Panthers Academy Players"
               fill
               className="object-cover brightness-50"

@@ -94,11 +94,11 @@ export default function News() {
       <Header />
 
       <main className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white">
-
+        <div className="h-32"></div>
         {/* HERO */}
         <section className="relative h-[380px] flex items-center justify-center overflow-hidden">
           <Image
-            src="/news-hero.jpg"
+            src="/groupphoto3.jpg"
             alt="Panthers Academy News"
             fill
             className="object-cover opacity-40"

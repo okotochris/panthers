@@ -170,7 +170,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <Image
-          src="/groupphoto.jpg" // Placeholder - Replace with your image
+          src="/groupphoto2.jpg" // Placeholder - Replace with your image
           alt="Panthers Academy Hero"
           fill
           className="object-cover brightness-50"

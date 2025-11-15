@@ -2,67 +2,102 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const navItems = [
+    { name: "Home", href: "/" },
+    { name: "News", href: "/news" },
+    { name: "Highlights", href: "/highlights" },
+    { name: "Players", href: "/players" },
+    { name: "About", href: "/about" },
+  ];
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-slate-900/90 backdrop-blur-md border-b border-amber-500/20">
-      <nav className="flex justify-between items-center px-6 py-3 max-w-7xl mx-auto">
-        {/* Logo */}
+    <header className="fixed top-0 left-0 w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 shadow-lg">
+      <nav className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        
+        {/* Logo Area */}
         <Link href="/" className="flex items-center gap-3">
-          <img
+          <motion.img
             src="/groupphoto.jpg"
             alt="Panthers Logo"
-            className="w-10 h-10 rounded-full object-cover border border-amber-500"
+            className="w-12 h-12 rounded-full border border-amber-500 shadow-md object-cover"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4 }}
           />
-          <h1 className="text-xl md:text-2xl font-bold text-amber-400">
+          <motion.h1
+            className="text-xl md:text-2xl font-extrabold text-amber-400 tracking-wide uppercase"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             Panthers FA
-          </h1>
+          </motion.h1>
         </Link>
 
-        {/* Desktop Menu */}
-        <ul className="hidden md:flex space-x-8 text-sm font-medium">
-          {["Home", "News", "Fixtures", "Players", "About"].map((item) => (
-            <li key={item}>
+        {/* Desktop Navigation */}
+        <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
+          {navItems.map((item, i) => (
+            <motion.li
+              key={item.name}
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
+            >
               <Link
-                href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                className="hover:text-amber-400 transition-colors duration-200"
+                href={item.href}
+                className="relative group text-white/90 hover:text-amber-400 transition"
               >
-                {item}
+                {item.name}
+                <span className="absolute bottom-[-4px] left-0 w-0 h-[2px] bg-amber-400 transition-all duration-300 group-hover:w-full" />
               </Link>
-            </li>
+            </motion.li>
           ))}
         </ul>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Button */}
         <button
           className="md:hidden text-amber-400"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
+          onClick={() => setOpen(!open)}
         >
-          {menuOpen ? <X size={26} /> : <Menu size={26} />}
+          {open ? <X size={28} /> : <Menu size={28} />}
         </button>
       </nav>
 
-      {/* Mobile Dropdown */}
-      {menuOpen && (
-        <div className="md:hidden bg-slate-900/95 border-t border-amber-500/20 backdrop-blur-md">
-          <ul className="flex flex-col space-y-4 p-6 text-sm font-medium">
-            {["Home", "News", "Fixtures", "Players", "About"].map((item) => (
-              <li key={item}>
-                <Link
-                  href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                  className="block hover:text-amber-400 transition-colors duration-200"
-                  onClick={() => setMenuOpen(false)}
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden bg-slate-950/95 backdrop-blur-xl border-t border-white/5 shadow-xl"
+          >
+            <ul className="flex flex-col p-6 gap-4 font-medium">
+              {navItems.map((item) => (
+                <motion.li
+                  key={item.name}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.25 }}
                 >
-                  {item}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                  <Link
+                    href={item.href}
+                    className="block py-3 text-white/90 hover:text-amber-400 transition"
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

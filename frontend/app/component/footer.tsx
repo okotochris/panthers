@@ -1,24 +1,25 @@
-import { Facebook, Instagram, Link, Mail, MapPin, Phone, Youtube } from 'lucide-react'
+import { Facebook, Instagram, Mail, MapPin, Phone, Youtube } from 'lucide-react'
+import Link from 'next/link'
 
 
 function Footer() {
   return (
-      <footer className="bg-slate-900 border-t border-amber-500/20 py-12 px-6">
+      <footer className="bg-slate-900 border-t text-white border-amber-500/20 py-12 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
           {/* About */}
           <div>
             <h3 className="text-xl font-bold text-amber-400 mb-4">Panthers Football Academy</h3>
-            <p className="opacity-80 mb-4">Founded in 2022, Panthers FA is dedicated to developing young talents through elite training, academics, and character building at our state-of-the-art facility in Lagos, Nigeria.</p>
+            <p className="opacity-80 text-white mb-4">Founded in 2022, Panthers FA is dedicated to developing young talents through elite training, academics, and character building at our state-of-the-art facility in Lagos, Nigeria.</p>
             <div className="flex gap-4">
-              <a href="#" className="text-amber-400 hover:text-amber-300"><Facebook size={20} /></a>
-              <a href="#" className="text-amber-400 hover:text-amber-300"><Instagram size={20} /></a>
-              <a href="#" className="text-amber-400 hover:text-amber-300"><Youtube size={20} /></a>
+              <Link href="#" className="text-amber-400 hover:text-amber-300"><Facebook size={20} /></Link>
+              <Link href="#" className="text-amber-400 hover:text-amber-300"><Instagram size={20} /></Link>
+              <Link href="#" className="text-amber-400 hover:text-amber-300"><Youtube size={20} /></Link>
             </div>
           </div>
           {/* Quick Links */}
           <div>
             <h4 className="text-lg font-semibold mb-4 text-amber-400">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-white text-sm">
               <li><Link href="/about" className="opacity-80 hover:text-amber-400 transition">About Us</Link></li>
               <li><Link href="/news" className="opacity-80 hover:text-amber-400 transition">News</Link></li>
               <li><Link href="/fixtures" className="opacity-80 hover:text-amber-400 transition">Fixtures</Link></li>

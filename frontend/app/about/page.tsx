@@ -30,7 +30,7 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
           <Image
-            src="/academy-hero.jpg"
+            src="groupphoto5.jpg"
             alt="Panthers Academy"
             fill
             className="object-cover brightness-50"

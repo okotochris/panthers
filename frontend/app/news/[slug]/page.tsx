@@ -7,41 +7,37 @@ import { ChevronLeft, Calendar, Clock, Share2, Bookmark, Tag, Newspaper } from "
 import FullView from "../../component/viewImage"
 import Header from "../../component/header";
 import Footer from "../../component/footer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Fetching from "@/app/component/Fetching";
+import formatFullDate from "@/app/component/formatFullDate";
+const server = process.env.NEXT_PUBLIC_API_URL
 
 interface Article {
-  title: string;
-  date: string;
-  author: string;
-  readTime: string;
-  images: string[];
-  content: string; // plain text from DB
-  tags: string[];
+  id: number
+  title: string
+  date: string
+  content: string
+  images: string[]
+  createdat:string
 }
 
 export default function NewsDetail() {
+  const [article, setArticle] = useState<Article | null >(null)
+
+  const pathName = usePathname()
+  useEffect(()=>{
+    const id = pathName.split('/')[2]
+    console.log(id)
+    fetch(`${server}/api/news/${id}`)
+    .then(result=>{
+      result.json()
+      .then(data=>{
+        setArticle(data)
+      })
+    })
+  }, [])
     const [fullImg, setFullImg] = useState<string | null>(null);
-  const article: Article = {
-    title: "Panthers Academy Secures Thrilling Victory in TCC League MD9",
-    date: "Nov 12, 2025",
-    author: "Joh Joseph",
-    readTime: "5 min read",
-    images: [
-      "/image1.jpg", 
-      "/image1.jpg",
-      "/image1.jpg",
-      "/image1.jpg",
-    ],
-    content: `In a match that had everything – drama, skill, and sheer determination – Panthers Academy emerged victorious against a stubborn Valiant FC side. The game, played under the floodlights of the National Stadium, showcased our young talents.
-
-The Opening Salvo: The first half was a cagey affair, with both teams probing for weaknesses. Valiant FC, known for their counter-attacking prowess, tested our defense early on. Our backline stood firm. A moment of brilliance from our star forward broke the deadlock in the 28th minute.
-
-Second Half Drama: Valiant equalized early in the second half through a set-piece, but Panthers refused to be rattled. By the 65th minute, our forward scored the second goal. The stadium erupted as our anthem echoed through the stands.
-
-Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squad rotating to manage fatigue, expect more opportunities for our emerging talents.
-    `,
-    tags: ["TCC League", "Victory", "Youth Football"],
-  };
 
   // Enhanced content splitting: detect heading-like lines and paragraphs
   const processContent = (content: string) => {
@@ -57,7 +53,7 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
       });
   };
 
-  const contentBlocks = processContent(article.content);
+  // const contentBlocks = processContent(article.content);
 
   const renderContentBlock = (block: { type: 'heading' | 'paragraph'; content: string }, idx: number) => {
     return (
@@ -82,7 +78,7 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
   return (
     <>
       <Header />
-      
+      {article ?
       <main className="bg-gradient-to-br from-slate-900 via-black to-amber-900 text-white relative overflow-hidden">
         {/* Hero Section */}
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
@@ -125,13 +121,13 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
             >
               <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full backdrop-blur-sm">
                 <Calendar className="w-4 h-4" />
-                <span>{article.date}</span>
+                <span>{formatFullDate(article.createdat)}</span>
               </div>
               <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full backdrop-blur-sm">
                 <Clock className="w-4 h-4" />
-                <span>{article.readTime}</span>
+                {/* <span>{article.readTime}</span> */}
               </div>
-              <span className="bg-white/5 px-4 py-2 rounded-full backdrop-blur-sm">By {article.author}</span>
+              <span className="bg-white/5 px-4 py-2 rounded-full backdrop-blur-sm">By Panthers Football Accademy</span>
             </motion.div>
           </motion.div>
         </section>
@@ -148,7 +144,7 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
             >
               <div className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 md:p-12 border border-amber-500/20 shadow-2xl shadow-amber-500/5">
                 <div className="space-y-8">
-                  {contentBlocks.map((block, idx) => renderContentBlock(block, idx))}
+                  {processContent(article.content).map((block, idx) => renderContentBlock(block, idx))}
                 </div>
               </div>
             </motion.article>
@@ -168,7 +164,7 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
                     Topics
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {article.tags.map((tag, i) => (
+                    {['Nigeria League', 'Victory', 'Youth Football'].map((tag, i) => (
                       <Link
                         key={i}
                         href={`/news?tag=${tag.toLowerCase()}`}
@@ -206,7 +202,7 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
           </div>
 
           {/* Bottom Images Grid */}
-          {article.images.slice(1).length > 0 && (
+          {article.images.length > 0 && (
             <motion.div
               className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16"
               initial={{ opacity: 0, y: 30 }}
@@ -214,7 +210,7 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              {article.images.slice(1).map((img, i) => (
+              {article.images.map((img, i) => (
                 <motion.div
                   key={i}
                   className="group overflow-hidden rounded-2xl shadow-lg shadow-amber-500/10 hover:shadow-amber-500/20 transition-all duration-500"
@@ -254,6 +250,9 @@ Looking Ahead: Next up is a tough away fixture against Dakkada FC. With the squa
         </section>
         {fullImg && <FullView img={fullImg} onClose={() => setFullImg(null)} />}
       </main>
+      :
+      <Fetching/>
+      }
       
       <Footer />
     </>

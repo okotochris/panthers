@@ -5,15 +5,18 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, Tag } from "lucide-react";
 import Header from "../component/header";
 import Footer from "../component/footer";
+import { useEffect, useState } from "react";
+import formatFullDate from "../component/formatFullDate"
+const server = process.env.NEXT_PUBLIC_API_URL
 
 
 interface NewsArticle {
   id: number;
   title: string;
-  date: string;
+  createdat: string;
   author: string;
   excerpt: string;
-  image: string;
+  images: string [];
   slug: string;
   readTime: string;
   tags: string[];
@@ -21,74 +24,84 @@ interface NewsArticle {
 
 
 export default function News() {
-    const newsArticles = [
-  {
-    id: 1,
-    title: 'Panthers Academy Secures Thrilling Victory in TCC League MD9',
-    date: 'Nov 12, 2025',
-    author: 'Academy Press',
-    excerpt: 'Our young lions roared to a 2-1 win against Valiant FC, climbing to 2nd in the standings. Key highlights include a stunning brace from our star forward.',
-    image: '/image1.jpg',
-    slug: 'tcc-md9-victory',
-    readTime: '5 min read',
-    tags: ['TCC League', 'Victory', 'Youth Football']
-  },
-  {
-    id: 2,
-    title: 'Academy Accredited as Junior Secondary School – A New Era Begins',
-    date: 'Nov 8, 2025',
-    author: 'Admin',
-    excerpt: 'Integrating elite training with academics to nurture complete athletes. This milestone allows us to offer formal education alongside world-class coaching.',
-    image: '/image2.jpg',
-    slug: 'accreditation-milestone',
-    readTime: '4 min read',
-    tags: ['Education', 'Accreditation', 'Development']
-  },
-  {
-    id: 3,
-    title: 'Player Spotlight: Rising Star Signs Pro Contract',
-    date: 'Nov 10, 2025',
-    author: 'Scout Report',
-    excerpt: '18-year-old midfielder joins European club after standout season. His journey from our academy to professional leagues inspires the next generation.',
-    image: '/image3.jpg',
-    slug: 'pro-contract-signing',
-    readTime: '6 min read',
-    tags: ['Player Spotlight', 'Pro Contract', 'Success Story']
-  },
-  {
-    id: 4,
-    title: 'Training Camp Wrap-Up: Building Champions',
-    date: 'Nov 5, 2025',
-    author: 'Coach Insights',
-    excerpt: 'Our intensive pre-season camp focused on fitness, tactics, and team bonding. Players return stronger and more united than ever.',
-    image: '/image4.jpg',
-    slug: 'training-camp-wrap-up',
-    readTime: '3 min read',
-    tags: ['Training', 'Preparation', 'Team Building']
-  },
-  {
-    id: 5,
-    title: 'Community Outreach: Academy Gives Back',
-    date: 'Nov 3, 2025',
-    author: 'CSR Team',
-    excerpt: 'Volunteering at local schools and hosting free clinics to inspire young talents in underserved communities.',
-    image: '/image5.jpg',
-    slug: 'community-outreach',
-    readTime: '4 min read',
-    tags: ['Community', 'Outreach', 'Social Impact']
-  },
-  {
-    id: 6,
-    title: 'Nutrition Tips for Young Athletes',
-    date: 'Oct 30, 2025',
-    author: 'Nutritionist',
-    excerpt: 'Expert advice on fueling performance and recovery for growing footballers. Balanced diets tailored to training demands.',
-    image: '/image6.jpg',
-    slug: 'nutrition-tips',
-    readTime: '5 min read',
-    tags: ['Health', 'Nutrition', 'Athlete Development']
-  }
-];
+  const [newsArticles, setNewsArtitcles] = useState<NewsArticle[]>([])
+  useEffect(()=>{
+    fetch(`${server}/api/news`)
+    .then(result=>{
+      result.json()
+      .then(data=>{
+        setNewsArtitcles(data)
+      })
+    })
+  }, [])
+//     const newsArticles = [
+//   {
+//     id: 1,
+//     title: 'Panthers Academy Secures Thrilling Victory in TCC League MD9',
+//     date: 'Nov 12, 2025',
+//     author: 'Academy Press',
+//     excerpt: 'Our young lions roared to a 2-1 win against Valiant FC, climbing to 2nd in the standings. Key highlights include a stunning brace from our star forward.',
+//     image: '/image1.jpg',
+//     slug: 'tcc-md9-victory',
+//     readTime: '5 min read',
+//     tags: ['TCC League', 'Victory', 'Youth Football']
+//   },
+//   {
+//     id: 2,
+//     title: 'Academy Accredited as Junior Secondary School – A New Era Begins',
+//     date: 'Nov 8, 2025',
+//     author: 'Admin',
+//     excerpt: 'Integrating elite training with academics to nurture complete athletes. This milestone allows us to offer formal education alongside world-class coaching.',
+//     image: '/image2.jpg',
+//     slug: 'accreditation-milestone',
+//     readTime: '4 min read',
+//     tags: ['Education', 'Accreditation', 'Development']
+//   },
+//   {
+//     id: 3,
+//     title: 'Player Spotlight: Rising Star Signs Pro Contract',
+//     date: 'Nov 10, 2025',
+//     author: 'Scout Report',
+//     excerpt: '18-year-old midfielder joins European club after standout season. His journey from our academy to professional leagues inspires the next generation.',
+//     image: '/image3.jpg',
+//     slug: 'pro-contract-signing',
+//     readTime: '6 min read',
+//     tags: ['Player Spotlight', 'Pro Contract', 'Success Story']
+//   },
+//   {
+//     id: 4,
+//     title: 'Training Camp Wrap-Up: Building Champions',
+//     date: 'Nov 5, 2025',
+//     author: 'Coach Insights',
+//     excerpt: 'Our intensive pre-season camp focused on fitness, tactics, and team bonding. Players return stronger and more united than ever.',
+//     image: '/image4.jpg',
+//     slug: 'training-camp-wrap-up',
+//     readTime: '3 min read',
+//     tags: ['Training', 'Preparation', 'Team Building']
+//   },
+//   {
+//     id: 5,
+//     title: 'Community Outreach: Academy Gives Back',
+//     date: 'Nov 3, 2025',
+//     author: 'CSR Team',
+//     excerpt: 'Volunteering at local schools and hosting free clinics to inspire young talents in underserved communities.',
+//     image: '/image5.jpg',
+//     slug: 'community-outreach',
+//     readTime: '4 min read',
+//     tags: ['Community', 'Outreach', 'Social Impact']
+//   },
+//   {
+//     id: 6,
+//     title: 'Nutrition Tips for Young Athletes',
+//     date: 'Oct 30, 2025',
+//     author: 'Nutritionist',
+//     excerpt: 'Expert advice on fueling performance and recovery for growing footballers. Balanced diets tailored to training demands.',
+//     image: '/image6.jpg',
+//     slug: 'nutrition-tips',
+//     readTime: '5 min read',
+//     tags: ['Health', 'Nutrition', 'Athlete Development']
+//   }
+// ];
   return (
     <>
       <Header />
@@ -124,7 +137,7 @@ export default function News() {
           {/* LEFT — ARTICLES GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
 
-            {newsArticles.map((article, index) => (
+            {newsArticles ? newsArticles.map((article, index) => (
               <motion.article
                 key={article.id}
                 initial={{ opacity: 0, y: 30 }}
@@ -137,7 +150,7 @@ export default function News() {
                 {/* IMAGE */}
                 <div className="relative h-56 overflow-hidden">
                   <Image
-                    src={article.image}
+                    src={article.images[0]}
                     alt={article.title}
                     fill
                     className="object-cover transition-transform duration-700 hover:scale-110"
@@ -145,7 +158,7 @@ export default function News() {
 
                   {/* TAGS */}
                   <div className="absolute top-4 left-4 flex gap-2">
-                    {article.tags.slice(0, 2).map((tag, i) => (
+                    {['Nigeria League', 'Victory', 'Youth Football'].slice(0, 2).map((tag, i) => (
                       <span key={i} className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 backdrop-blur-md">
                         {tag}
                       </span>
@@ -157,7 +170,7 @@ export default function News() {
                 <div className="p-6">
                   <div className="flex items-center text-xs text-gray-400 gap-4 mb-3">
                     <Calendar className="w-4 h-4" />
-                    {article.date}
+                    {formatFullDate(article.createdat)}
                     <Clock className="w-4 h-4 ml-3" />
                     {article.readTime}
                   </div>
@@ -169,14 +182,17 @@ export default function News() {
                   <p className="text-gray-300 text-sm mb-4">{article.excerpt}</p>
 
                   <Link
-                    href={`/news/${article.slug}`}
+                    href={`/news/${article.id}`}
                     className="text-amber-400 font-semibold hover:text-amber-300 inline-flex gap-2 items-center"
                   >
                     Read full story →
                   </Link>
                 </div>
               </motion.article>
-            ))}
+            ))
+            :
+            <h2>Loading....</h2>
+          }
           </div>
 
           {/* RIGHT — STICKY SIDEBAR */}

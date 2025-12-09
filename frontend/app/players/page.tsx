@@ -6,59 +6,78 @@ import { motion } from "framer-motion";
 import { ChevronRight, Users, Trophy, MapPin, Award } from "lucide-react";
 import Header from "../component/header";
 import Footer from "../component/footer";
+import { useEffect, useState } from "react";
+import Fetching from "../component/Fetching";
+const server = process.env.NEXT_PUBLIC_API_URL
 
 interface Player {
   id: number;
   name: string;
   position: string;
-  image: string;
+  images: string[];
   slug: string;
+  assists:string;
+  matchplayed:number
+  goal:string
   stats: { goals?: number; assists?: number; appearances?: number };
 }
 
 export default function PlayersPage() {
-  const players: Player[] = [
-    { 
-      id: 1, 
-      name: "John Doe", 
-      position: "Forward", 
-      image: "/player6.jpg", 
-      slug: "john-doe",
-      stats: { goals: 12, assists: 5, appearances: 25 }
-    },
-    { 
-      id: 2, 
-      name: "Jane Smith", 
-      position: "Midfielder", 
-      image: "/player2.jpg", 
-      slug: "jane-smith",
-      stats: { goals: 3, assists: 15, appearances: 28 }
-    },
-    { 
-      id: 3, 
-      name: "Mike Johnson", 
-      position: "Defender", 
-      image: "/player3.jpg", 
-      slug: "mike-johnson",
-      stats: { goals: 1, assists: 2, appearances: 30 }
-    },
-    { 
-      id: 4, 
-      name: "Alice Brown", 
-      position: "Goalkeeper", 
-      image: "/player4.jpg", 
-      slug: "alice-brown",
-      stats: { goals: 0, assists: 0, appearances: 22 }
-    },
-    { 
-      id: 5, 
-      name: "Chris Adams", 
-      position: "Forward", 
-      image: "/player5.jpg", 
-      slug: "chris-adams",
-      stats: { goals: 8, assists: 7, appearances: 20 }
-    },
-  ];
+  const [players, setPlayers] = useState<Player[]>([])
+  useEffect(()=>{
+    fetch(`${server}/api/players`)
+    .then(result=>{
+      result.json()
+      .then(data=>{
+        setPlayers(data)
+      })
+      .catch(err=>{
+        console.log(err)
+      })
+    })
+  }, [])
+  // const players: Player[] = [
+  //   { 
+  //     id: 1, 
+  //     name: "John Doe", 
+  //     position: "Forward", 
+  //     image: "/player6.jpg", 
+  //     slug: "john-doe",
+  //     stats: { goals: 12, assists: 5, appearances: 25 }
+  //   },
+  //   { 
+  //     id: 2, 
+  //     name: "Jane Smith", 
+  //     position: "Midfielder", 
+  //     image: "/player2.jpg", 
+  //     slug: "jane-smith",
+  //     stats: { goals: 3, assists: 15, appearances: 28 }
+  //   },
+  //   { 
+  //     id: 3, 
+  //     name: "Mike Johnson", 
+  //     position: "Defender", 
+  //     image: "/player3.jpg", 
+  //     slug: "mike-johnson",
+  //     stats: { goals: 1, assists: 2, appearances: 30 }
+  //   },
+  //   { 
+  //     id: 4, 
+  //     name: "Alice Brown", 
+  //     position: "Goalkeeper", 
+  //     image: "/player4.jpg", 
+  //     slug: "alice-brown",
+  //     stats: { goals: 0, assists: 0, appearances: 22 }
+  //   },
+  //   { 
+  //     id: 5, 
+  //     name: "Chris Adams", 
+  //     position: "Forward", 
+  //     image: "/player5.jpg", 
+  //     slug: "chris-adams",
+  //     stats: { goals: 8, assists: 7, appearances: 20 }
+  //   },
+  // ];
 
   const academyStats = {
     totalPlayers: 150,
@@ -71,12 +90,12 @@ export default function PlayersPage() {
     {
       quote: "Panthers Academy transformed my game and life. The coaching is world-class!",
       author: "John Doe, Pro Forward",
-      image: "/testimonial1.jpg"
+      image: "/player3.jpg"
     },
     {
       quote: "From raw talent to ready professional – that's the Panthers difference.",
       author: "Coach Maria Lopez",
-      image: "/testimonial2.jpg"
+      image: "/player2.jpg"
     }
   ];
 
@@ -216,7 +235,9 @@ export default function PlayersPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, staggerChildren: 0.1 }}
           >
-            {players.map((player, idx) => (
+            {
+            players ? 
+            players.map((player, idx) => (
               <motion.div
                 key={player.id}
                 className="group bg-white/5 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-amber-500/30 transition-all duration-500 border border-amber-500/10 hover:border-amber-400/30"
@@ -232,7 +253,7 @@ export default function PlayersPage() {
               >
                 <div className="relative h-80 w-full overflow-hidden">
                  <Image
-                      src={player.image}
+                      src={player.images[0]}
                         alt={player.name}
                         fill
                         className=" object-cover md:object-cover object-top sm:object-contain "
@@ -247,20 +268,20 @@ export default function PlayersPage() {
                   <h3 className="text-2xl font-bold mb-3 group-hover:text-amber-300 transition-colors">{player.name}</h3>
                   <div className="grid grid-cols-3 gap-2 mb-4 text-xs text-gray-400">
                     <div className="text-center">
-                      <div className="font-bold text-amber-400">{player.stats.goals || 0}</div>
+                      <div className="font-bold text-amber-400">{player.goal || 0}</div>
                       <div>Goals</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-amber-400">{player.stats.assists || 0}</div>
+                      <div className="font-bold text-amber-400">{player.assists || 0}</div>
                       <div>Assists</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-amber-400">{player.stats.appearances || 0}</div>
+                      <div className="font-bold text-amber-400">{player.matchplayed || 0}</div>
                       <div>Apps</div>
                     </div>
                   </div>
                   <Link
-                    href={`/players/${player.slug}`}
+                    href={`/players/${player.id}`}
                     className="mt-auto inline-flex items-center gap-2 px-6 py-3 bg-amber-500/20 text-amber-300 font-semibold rounded-full hover:bg-amber-500/30 transition-all duration-300 w-full justify-center"
                   >
                     <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -269,7 +290,11 @@ export default function PlayersPage() {
                   </Link>
                 </div>
               </motion.div>
-            ))}
+            ))
+            :
+            <Fetching/>
+          
+          }
           </motion.div>
         </section>
 

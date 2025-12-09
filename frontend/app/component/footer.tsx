@@ -41,8 +41,10 @@ function Footer() {
             <h4 className="text-lg font-semibold mb-4 text-amber-400">Stay Updated</h4>
             <p className="opacity-80 mb-4">Subscribe for match alerts and academy news.</p>
             <form className="flex gap-2">
-              <input type="email" placeholder="Your email" className="flex-1 px-3 py-2 rounded bg-white/10 text-white placeholder:opacity-50 border border-amber-500/20 focus:outline-none focus:border-amber-400" />
-              <button type="submit" className="px-4 py-2 bg-amber-500 rounded hover:bg-amber-600 transition">Sub</button>
+             <div className='flex flex-wrap'>
+                <input type="email" placeholder="Your email" className="flex-1 px-3 py-2 rounded bg-white/10 text-white placeholder:opacity-50 border border-amber-500/20 focus:outline-none focus:border-amber-400" />
+                <button type="submit" className="px-4 py-2 bg-amber-500 rounded hover:bg-amber-600 transition">Sub</button>
+             </div>
             </form>
           </div>
         </div>

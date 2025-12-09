@@ -6,8 +6,31 @@ import { motion } from "framer-motion";
 import Header from "../component/header";
 import Footer from "../component/footer";
 import { Users, Trophy, Award, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+const server = process.env.NEXT_PUBLIC_API_URL
 
+type Coach = {
+  id:number;
+  name:string;
+  position:string;
+  image:string;
+}
 export default function AboutPage() {
+  const [teamMembers, setTeamMembers] = useState<Coach[]>([])
+  useEffect(()=>{
+    fetch(`${server}/api/coach`)
+    .then(result=>{
+      result.json()
+      .then(data=>{
+        setTeamMembers(data)
+      })
+    })
+    .catch(err=>{
+      console.log(err)
+    })
+  },[])
+
+
   const academyStats = [
     { icon: <Users className="w-12 h-12 text-amber-400 mx-auto mb-2" />, label: "Active Players", value: 150 },
     { icon: <Trophy className="w-12 h-12 text-amber-400 mx-auto mb-2" />, label: "Pro Contracts", value: 25 },
@@ -15,12 +38,12 @@ export default function AboutPage() {
     { icon: <MapPin className="w-12 h-12 text-amber-400 mx-auto mb-2" />, label: "Location", value: "Lagos, Nigeria" },
   ];
 
-  const teamMembers = [
-    { name: "John Doe", role: "Head Coach", image: "/coach1.jpg" },
-    { name: "Jane Smith", role: "Assistant Coach", image: "/coach2.jpg" },
-    { name: "Mike Johnson", role: "Fitness Coach", image: "/coach3.jpg" },
-    { name: "Alice Brown", role: "Goalkeeper Coach", image: "/coach4.jpg" },
-  ];
+  // const teamMembers = [
+  //   { name: "John Doe", role: "Head Coach", image: "/coach1.jpg" },
+  //   { name: "Jane Smith", role: "Assistant Coach", image: "/coach2.jpg" },
+  //   { name: "Mike Johnson", role: "Fitness Coach", image: "/coach3.jpg" },
+  //   { name: "Alice Brown", role: "Goalkeeper Coach", image: "/coach4.jpg" },
+  // ];
 
   return (
     <>
@@ -30,7 +53,7 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
           <Image
-            src="groupphoto5.jpg"
+            src="/groupphoto5.jpg"
             alt="Panthers Academy"
             fill
             className="object-cover brightness-50"
@@ -118,7 +141,7 @@ export default function AboutPage() {
           </motion.div>
 
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {teamMembers.map((member, i) => (
+            {teamMembers && teamMembers.map((member, i) => (
               <motion.div
                 key={i}
                 className="overflow-hidden rounded-2xl relative group shadow-lg hover:shadow-amber-500/30 transition-shadow duration-300"
@@ -133,7 +156,7 @@ export default function AboutPage() {
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/40 text-white text-center">
                   <h3 className="font-bold">{member.name}</h3>
-                  <p className="text-sm text-amber-400">{member.role}</p>
+                  <p className="text-sm text-amber-400">{member.position}</p>
                 </div>
               </motion.div>
             ))}

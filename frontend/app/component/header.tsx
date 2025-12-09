@@ -22,7 +22,7 @@ export default function Header() {
         {/* Logo Area */}
         <Link href="/" className="flex items-center gap-3">
           <motion.img
-            src="/groupphoto.jpg"
+            src="/logo.png"
             alt="Panthers Logo"
             className="w-12 h-12 rounded-full border border-amber-500 shadow-md object-cover"
             initial={{ scale: 0.8, opacity: 0 }}

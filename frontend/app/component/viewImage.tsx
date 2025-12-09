@@ -14,7 +14,7 @@ export default function FullView({ img, onClose, alt = "Player Image" }: FullVie
         onClick={onClose}
         className="absolute top-6 right-6 text-white p-2 rounded-full hover:bg-white/20 transition"
       >
-        <X className="w-8 h-8" />
+        <X className="absolute top-0 right-0 w-8 h-8 z-100" />
       </button>
       <div className="relative w-full h-full max-w-5xl max-h-full p-4">
         <Image

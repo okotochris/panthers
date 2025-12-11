@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     siteName: "Panthers Football Academy",
     images: [
       {
-        url: "/og-image.jpg", // Replace with actual OG image path in /public
+        url: "/logo.png", // Replace with actual OG image path in /public
         width: 1200,
         height: 630,
         alt: "Panthers Football Academy - Youth Football Excellence"
       }
     ],
-    url: "https://panthersacademy.com", // Replace with your domain
+    url: "https://www.panthers.ng", // Replace with your domain
   },
   twitter: {
     card: "summary_large_image",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     yandex: "your-yandex-verification-token", // Optional
   },
   alternates: {
-    canonical: "https://panthersacademy.com", // Replace with your domain
+    canonical: "https://www.panthers.ng/", // Replace with your domain
   },
 };
 

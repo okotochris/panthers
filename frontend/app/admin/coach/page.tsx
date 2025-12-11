@@ -70,6 +70,11 @@ export default function AddPlayerForm() {
       console.error(err);
     } finally {
       setIsLoading(false);
+      setForm({
+      name: "",
+      position: "",
+      image: null as File | null, // Single file only
+      })
     }
   }
 

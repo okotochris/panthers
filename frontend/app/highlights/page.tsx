@@ -7,74 +7,35 @@ import { motion } from 'framer-motion';
 import { Play, Video, Clock, Calendar, ChevronRight, Trophy } from 'lucide-react';
 import Header from '../component/header';
 import Footer from '../component/footer';
+import { useEffect, useState } from 'react';
+import formatFullDate from '../component/formatFullDate';
+import VideoDuration from '../component/VideoDuration';
+const server = process.env.NEXT_PUBLIC_API_URL 
 
 interface Highlight {
   id: number;
-  title: string;
-  videoUrl: string;
-  duration: string;
-  date: string;
+  description: string;
+  video: string;
+  league: string;
+  created_at: string;
   views: number;
   category: string;
 }
 
 export default function HighlightsPage() {
-  const highlights: Highlight[] = [
-    {
-      id: 1,
-      title: 'MD9 Goal Fest vs Valiant FC',
-      videoUrl: 'https://www.youtube.com/embed/GYb3oEzlVXo?si=DuMADHKXLrcU71gr', // Replace with actual embed URL
-      duration: '3:45',
-      date: 'Nov 12, 2025',
-      views: 12500,
-      category: 'Match Highlights'
-    },
-    {
-      id: 2,
-      title: 'Training Montage: Panther Pride',
-      videoUrl: 'https://www.youtube.com/embed/GYb3oEzlVXo?si=DuMADHKXLrcU71gr',
-      duration: '2:30',
-      date: 'Nov 10, 2025',
-      views: 8900,
-      category: 'Training'
-    },
-    {
-      id: 3,
-      title: 'Rising Star Skills Showcase',
-      videoUrl: 'https://www.youtube.com/embed/GYb3oEzlVXo?si=DuMADHKXLrcU71gr',
-      duration: '4:20',
-      date: 'Nov 8, 2025',
-      views: 21000,
-      category: 'Player Spotlight'
-    },
-    {
-      id: 4,
-      title: 'Academy vs Rivals: Full Match Recap',
-      videoUrl: 'https://www.youtube.com/embed/GYb3oEzlVXo?si=DuMADHKXLrcU71gr',
-      duration: '6:15',
-      date: 'Nov 5, 2025',
-      views: 34000,
-      category: 'Match Highlights'
-    },
-    {
-      id: 5,
-      title: 'Defensive Masterclass Training',
-      videoUrl: 'https://www.youtube.com/embed/GYb3oEzlVXo?si=DuMADHKXLrcU71gr',
-      duration: '1:55',
-      date: 'Nov 3, 2025',
-      views: 6700,
-      category: 'Training'
-    },
-    {
-      id: 6,
-      title: 'Goal of the Month: Epic Strike',
-      videoUrl: 'https://www.youtube.com/embed/GYb3oEzlVXo?si=DuMADHKXLrcU71gr',
-      duration: '0:45',
-      date: 'Oct 30, 2025',
-      views: 45000,
-      category: 'Awards'
-    }
-  ];
+  const [highlights, setHightlights] = useState<Highlight[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  useEffect(()=>{
+    setIsLoading(true)
+    fetch(`${server}/api/highlight`)
+    .then(result=>{
+      result.json()
+      .then(data=>{
+        setHightlights(data)
+        setIsLoading(false)
+      })
+    })
+  }, [])
 
   const categories = [...new Set(highlights.map(h => h.category))];
 
@@ -144,7 +105,7 @@ export default function HighlightsPage() {
             {categories.map((cat) => (
               <Link
                 key={cat}
-                href={`#${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                href={`/highlights/${1}`}
                 className="px-6 py-3 bg-white/10 text-gray-300 font-semibold rounded-full hover:bg-amber-500/20 hover:text-amber-300 transition"
               >
                 {cat} ({highlights.filter(h => h.category === cat).length})
@@ -162,7 +123,11 @@ export default function HighlightsPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, staggerChildren: 0.1 }}
           >
-            {highlights.map((highlight, idx) => (
+            {isLoading 
+            
+            ?<LoadingSkeleton/>
+            
+            : highlights.map((highlight, idx) => (
               <motion.div
                 key={highlight.id}
                 className="group bg-white/5 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-amber-500/30 transition-all duration-500 border border-amber-500/10 hover:border-amber-400/30"
@@ -175,10 +140,10 @@ export default function HighlightsPage() {
                 <div className="relative h-96 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <iframe
-                    src={highlight.videoUrl}
+                    src={highlight.video}
                     className="w-full h-full rounded-t-3xl"
                     allowFullScreen
-                    title={highlight.title}
+                    title={highlight.description}
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                     <Play className="w-12 h-12 text-amber-400 absolute -top-6 -right-4" />
@@ -186,18 +151,19 @@ export default function HighlightsPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
-                    {highlight.title}
+                    {highlight.description}
                   </h3>
                   <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
                     <Calendar className="w-4 h-4" />
-                    <span>{highlight.date}</span>
+                    <span>{formatFullDate(highlight.created_at)}</span>
                     <Clock className="w-4 h-4" />
-                    <span>{highlight.duration}</span>
+                    <span><VideoDuration url={highlight.video} /></span>
+
                     <Trophy className="w-4 h-4 text-amber-400" />
-                    <span>{highlight.category}</span>
+                    <span>{highlight.league}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                    <span>{highlight.views.toLocaleString()} views</span>
+                    <span>{10}k views</span>
                   </div>
                   <Link
                     href={`/highlights/${highlight.id}`}
@@ -250,3 +216,16 @@ export default function HighlightsPage() {
     </>
   );
 }
+
+function LoadingSkeleton() {
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="animate-pulse p-4">
+          <div className="rounded-2xl bg-gray-800/50 h-40" />
+        </div>
+      ))}
+    </div>
+  );
+}
+

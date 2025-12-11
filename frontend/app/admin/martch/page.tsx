@@ -67,6 +67,16 @@ const handleSubmit = async (e: React.FormEvent) => {
     console.error(err);
   } finally {
     setIsLoading(false);
+    setForm({
+       league: "",
+        club_name: "",
+        club_logo: null as File | null,
+        club_goal: "",
+        our_goal: "",
+        date: "",
+        time: "",
+        venue:""
+    })
   }
 };
   return (

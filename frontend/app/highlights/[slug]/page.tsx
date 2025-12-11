@@ -5,36 +5,65 @@ import Header from "../../component/header";
 import Footer from "../../component/footer";
 import { Calendar, Clock, Trophy, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import Fetching from '../../component/Fetching'
+import formatFullDate from "@/app/component/formatFullDate";
+import VideoDuration from "@/app/component/VideoDuration";
+const server = process.env.NEXT_PUBLIC_API_URL
 
+type Highlight = {
+  id: number;
+  description: string;
+  video: string;
+  league: string;
+  created_at: string;
+  views: number;
+  category: string;
+}
 export default function HighlightDetail() {
-  const highlight = {
-    id: 1,
-    title: "MD9 Goal Fest vs Valiant FC",
-    description:
-      "Relive the electrifying moments from our TCC League MD9 clash against Valiant FC. This highlight captures the passion, skill, and determination that defines Panthers Academy.",
-    videoUrl: "/video1.mp4",
-    duration: "3:45",
-    date: "Nov 12, 2025",
-    views: 12500,
-    category: "Match Highlights",
-    tags: ["TCC League", "Goals", "Victory", "John Doe"],
-  };
+  const pathaneme = usePathname()
+  const [highlight, setHighlight] = useState<Highlight | null>(null);
+
+  const [isLoading, setIsLoading] = useState(false)
+  useEffect(() => {
+    setIsLoading(true)
+    const id = pathaneme.split('/')[2]
+    fetch(`${server}/api/highlight/${id}`)
+      .then(result => {
+        result.json()
+          .then(data => {
+            console.log(data)
+            setHighlight(data)
+            setIsLoading(false)
+          }).catch(err => {
+            console.log(err)
+          })
+      })
+  }, [])
+
+
+
 
   return (
     <>
       <Header />
 
       <main className="min-h-screen bg-black text-white">
-         <div className="h-28"></div>
+        <div className="h-28"></div>
         {/* HERO VIDEO */}
-        <section className="w-full bg-black flex items-center justify-center p-4 py-10">
+
+        {isLoading ?
+          <Fetching />
+          : highlight &&
+          <section className="w-full bg-black flex items-center justify-center p-4 py-10">
             <div className="w-full max-w-3xl mx-auto">
-                <div className="w-full rounded-2xl overflow-hidden shadow-xl bg-black">
-               <video
-                    src={highlight.videoUrl}
-                    controls
-                    preload="metadata"
-                    className="
+              <div className="w-full rounded-2xl overflow-hidden shadow-xl bg-black">
+                <video
+                  src={highlight.video}
+                  controls
+                  preload="metadata"
+                  className="
                         w-full h-auto               /* natural height on mobile */
                         max-h-[70vh]                /* prevent overflow */
                         rounded-2xl bg-black 
@@ -42,53 +71,58 @@ export default function HighlightDetail() {
                         md:max-w-3xl                /* medium screens */
                         lg:max-w-4xl lg:max-h-[80vh] /* laptop: taller video */
                     "
-                    >
-                    Your browser does not support the video tag.
+                >
+                  Your browser does not support the video tag.
                 </video>
 
-                </div>
+              </div>
             </div>
-        </section>
-
+          </section>
+        }
 
         {/* TITLE + META INFO */}
-        <section className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-400 mb-4">
-            {highlight.title}
-          </h1>
 
-          <div className="flex flex-wrap gap-4 text-sm text-gray-300">
-            <div className="flex items-center gap-2">
-              <Calendar size={16} />
-              {highlight.date}
-            </div>
+        {
+          isLoading ?
+            <Fetching />
+            : highlight &&
+            <section className="max-w-4xl mx-auto px-4 py-8">
+              <h1 className="text-3xl md:text-4xl font-bold text-amber-400 mb-4">
+                {highlight.description}
+              </h1>
 
-            <div className="flex items-center gap-2">
-              <Clock size={16} />
-              {highlight.duration}
-            </div>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-300">
+                <div className="flex items-center gap-2">
+                  <Calendar size={16} />
+                  {formatFullDate(highlight.created_at)}
+                </div>
 
-            <div className="flex items-center gap-2">
-              <Trophy size={16} className="text-amber-400" />
-              {highlight.category}
-            </div>
+                <div className="flex items-center gap-2">
+                  <Clock size={16} />
+                  <VideoDuration url={highlight.video} />
+                </div>
 
-            <div>{highlight.views.toLocaleString()} views</div>
-          </div>
-        </section>
+                <div className="flex items-center gap-2">
+                  <Trophy size={16} className="text-amber-400" />
+                  {highlight.league}
+                </div>
 
+                <div>10k views</div>
+              </div>
+            </section>
+        }
         {/* DESCRIPTION */}
         <section className="max-w-4xl mx-auto px-4 pb-12">
           <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
             <p className="leading-relaxed text-gray-200 text-lg">
-              {highlight.description}
+              {highlight?.description}
             </p>
           </div>
         </section>
 
         {/* TAGS */}
         <section className="max-w-4xl mx-auto px-4 pb-12 flex flex-wrap gap-3">
-          {highlight.tags.map((tag, i) => (
+          {["TCC League", "Goals", "Victory", "John Doe"].map((tag, i) => (
             <span
               key={i}
               className="px-4 py-1 rounded-full text-sm bg-amber-500/20 text-amber-300"

@@ -16,7 +16,7 @@ interface Player {
   position: string;
   images: string[];
   slug: string;
-  assists:string;
+  assist:string;
   matchplayed:number
   goal:string
   stats: { goals?: number; assists?: number; appearances?: number };
@@ -272,7 +272,7 @@ export default function PlayersPage() {
                       <div>Goals</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-amber-400">{player.assists || 0}</div>
+                      <div className="font-bold text-amber-400">{player.assist || 0}</div>
                       <div>Assists</div>
                     </div>
                     <div className="text-center">

@@ -82,6 +82,15 @@ const handleSubmit = async (e: React.FormEvent) => {
     console.error(err);
   } finally {
     setIsLoading(false);
+    setForm({
+    name: "",
+    nationality: "",
+    dob: "",
+    position: "",
+    about: "",
+    images: [] as File[],
+    card: { yellow: 0, red: 0 },
+    })
   }
 };
 

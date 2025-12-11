@@ -75,12 +75,27 @@ router.get('/api/players', async(req, res)=>{
     res.status(500).json({msg:"server Error"})
   }
 })
+router.patch('/api/player/:playerId', async(req, res)=>{
+  const {playerId} = req.params
+ let {goal, assist, matchplayed, card}= req.body;
+
+  try {
+   const result = await db.query('UPDATE player SET goal=$1, assist=$2, matchplayed=$3, card=$4 WHERE id=$5  returning *', [goal, assist, matchplayed, card, playerId])
+    if(!result){
+      res.status(404).json({msg:"file not found"})
+      return
+    }
+    res.status(200).json({msg:"updated"})
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({msg:"server Error"})
+  }
+})
 router.get('/api/player/:id', async(req, res)=>{
   const {id} = req.params;
   try {
     const player = await db.query('SELECT * FROM player WHERE id=$1', [id])
     res.status(200).json(player.rows[0])
-    console.log(player.rows)
   } catch (err) {
     console.log(err)
     res.status(500).json({msg:"server Error"})
@@ -119,10 +134,9 @@ router.post('/api/match', upload.single('club_logo'), async (req, res) => {
   }
 });
 
-router.get('/api/match', async(req, res)=>{
-  const result = await db.query('SELECT * FROM match')
-  console.log(result.rows)
-})
+// router.get('/api/match', async(req, res)=>{
+//   const result = await db.query('SELECT * FROM match')
+// })
 
 router.post('/api/coach', upload.single('image'), async (req, res) => {
   const { name, position } = req.body;
@@ -148,24 +162,36 @@ router.post('/api/coach', upload.single('image'), async (req, res) => {
   }
 });
 
-router.post('/api/highlight', async (req, res) => {
-  const { league, description, video } = req.body;
+router.post('/api/highlight', upload.single('video'), async (req, res) => {
+  const { league, description } = req.body;
+
+  if (!req.file) {
+    return res.status(400).json({ msg: "Video file is required" });
+  }
 
   try {
+    // Upload video
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: "video",
+    });
+
+    const { secure_url, public_id } = result;
+
     const query = `
-      INSERT INTO highlight (league, description, video)
-      VALUES ($1, $2, $3)
+      INSERT INTO highlight (league, description, video, public_id)
+      VALUES ($1, $2, $3, $4)
     `;
 
-    await db.query(query, [league, description, video]);
+    await db.query(query, [league, description, secure_url, public_id]);
 
     res.status(200).json({ msg: "File Uploaded" });
-
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+
 
 router.get('/api/admin', async (req, res)=>{
   const [playerData, newsData, coachData, highlightData, matchData] = await Promise.all([
@@ -263,10 +289,12 @@ router.delete('/api/match', async(req, res)=>{
     res.status(500).json({msg:"Server error"})
   }
 })
-router.delete('/api/highlight', async(req, res)=>{
-  const id =req.body.id
+
+router.patch('/api/match/:id', async(req, res)=>{
+  const {id} =req.query
+  const {} = req.body;
   try {
-    const result = await db.query('DELETE FROM highlight WHERE id=$1', [id])
+    const result = await db.query('DELETE FROM match WHERE id=$1', [id])
     if(result.rows.length > 0){
       return res.status(404).json({msg:"file not found"})
     }
@@ -275,6 +303,37 @@ router.delete('/api/highlight', async(req, res)=>{
     res.status(500).json({msg:"Server error"})
   }
 })
+router.delete('/api/highlight', async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    // 1️⃣ Get the public_id first
+    const result = await db.query('SELECT public_id FROM highlight WHERE id=$1', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: "File not found" });
+    }
+
+    const { public_id } = result.rows[0];
+
+    // 2️⃣ Delete from Cloudinary
+    try {
+      await cloudinary.uploader.destroy(public_id, { resource_type: "video" });
+    } catch (cloudErr) {
+      console.error("Cloudinary deletion error:", cloudErr);
+      // You may still want to continue deleting from DB even if Cloudinary fails
+    }
+
+    // 3️⃣ Delete from DB
+    await db.query('DELETE FROM highlight WHERE id=$1', [id]);
+
+    res.status(200).json({ msg: "Deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 router.delete('/api/coach', async(req, res)=>{
   const id =req.body.id
   try {
@@ -302,9 +361,6 @@ router.get('/api/news/:id', async (req, res) => {
 
   try {
     const result = await db.query('SELECT * FROM news WHERE id = $1', [id]);
-
-    console.log(result.rows);
-
     if (result.rows.length === 0) {
       return res.status(404).json({ msg: "News not found" });
     }
@@ -321,7 +377,6 @@ router.get('/api/coach', async(req, res)=>{
   try {
     const data = await db.query('SELECT * FROM coach')
     res.status(200).json(data.rows)
-    console.log(data.rows)
   } catch (err) {
     console.log(err)
     res.status(500).json({msg:"server error"})
@@ -333,6 +388,36 @@ router.get('/api/matches', async(req, res)=>{
     res.status(200).json(data.rows)
   } catch (err) {
     res.status(500).json({msg:"Server error"})
+  }
+})
+
+router.get('/api/highlight', async(req, res)=>{
+  try {
+    const data = await db.query('SELECT * FROM highlight ORDER BY id DESC')
+    res.status(200).json(data.rows)
+  } catch (err) {
+    res.status(500).json({msg:"server eorror"})
+  }
+})
+router.get('/api/highlight/:id', async(req, res)=>{
+  const {id} = req.params
+  try {
+    const data = await db.query('SELECT * FROM highlight WHERE id=$1', [id])
+    res.status(200).json(data.rows[0])
+  } catch (err) {
+    res.status(500).json({msg:"server eorror"})
+  }
+})
+
+router.patch('/api/gaols', async(req, res)=>{
+  try {
+    const {goal, id, field} = req.body
+    const query = `UPDATE match SET ${field}=$1 WHERE id=$2`
+    await db.query(query, [goal, id])
+    res.status(200).json({msg:"Updated"})
+  } catch (err) {
+    res.status(500).json({msg: "server error"})
+    console.log(err)
   }
 })
 module.exports = router;

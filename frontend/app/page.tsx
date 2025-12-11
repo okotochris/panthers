@@ -3,11 +3,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Trophy, Newspaper, Users, Play, MapPin, Phone, Mail, Facebook, Instagram, Youtube, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Trophy, Newspaper, Users, Play, MapPin, Phone, Mail, Facebook, Instagram, Youtube, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import Footer from './component/footer';
 import Header from './component/header';
 import { useRef, useState, useEffect } from 'react';
 import formatDate from './component/formatDate'
+import VideoDuration from './component/VideoDuration';
+import formatFullDate from './component/formatFullDate';
 const server = process.env.NEXT_PUBLIC_API_URL
 
 
@@ -43,6 +45,9 @@ type Highlight = {
   id: number
   title: string
   video: string
+  description:string
+  created_at:string
+  league:string
 }
 export default function Home() {
   const [newsIndex, setNewsIndex] = useState(0);
@@ -613,7 +618,7 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <Link
-              href="/league"
+              href="/matches"
               className="bg-amber-500 hover:bg-amber-600 px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-amber-500/25"
             >
               View Full League Table
@@ -650,63 +655,50 @@ export default function Home() {
           </motion.h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {highlights.length > 0 ? highlights.map((item, i) => (
-              <motion.div
-                key={i}
-                className="bg-slate-800 p-4 rounded-lg shadow-sm hover:shadow-lg hover:border-amber-400 border border-slate-700 transition-all overflow-hidden"
-                initial={{ opacity: 0, y: 30 }}
+            {highlights.length > 0 ? highlights.map((highlight, i) => (
+               <motion.div
+                key={highlight.id}
+                className="group bg-white/5 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl hover:shadow-amber-500/30 transition-all duration-500 border border-amber-500/10 hover:border-amber-400/30"
+                initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: i * 0.2, ease: "easeOut" }}
                 viewport={{ once: true }}
-                whileHover={{
-                  scale: 1.02,
-                  y: -5,
-                  boxShadow: "0 15px 30px rgba(245, 158, 11, 0.2)"
-                }}
+                whileHover={{ scale: 1.05, y: -10 }}
+                transition={{ duration: 0.4, delay:  0.1 }}
               >
-                {/* Video Placeholder */}
-                <iframe
-                  src={item.video}
-                  className="w-full h-full rounded-t-3xl"
-                  allowFullScreen
+                <div className="relative h-96 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <iframe
+                    src={highlight.video}
+                    className="w-full h-full rounded-t-3xl"
+                    allowFullScreen
+                    title={highlight.description}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Play className="w-12 h-12 text-amber-400 absolute -top-6 -right-4" />
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
+                    {highlight.description}
+                  </h3>
+                  <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                    <Calendar className="w-4 h-4" />
+                    <span>{formatFullDate(highlight.created_at)}</span>
+                    <Clock className="w-4 h-4" />
+                    <span><VideoDuration url={highlight.video} /></span>
 
-                />
-
-                {/* Title */}
-                <motion.h3
-                  className="text-amber-400 font-semibold mt-4"
-                  whileHover={{ color: "#fbbf24" }}
-                >
-                  Highlight {i}
-                </motion.h3>
-
-                {/* Description */}
-                <motion.p
-                  className="text-gray-300 text-sm mt-2"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  viewport={{ once: true }}
-                >
-                  Relive the key moments — goals, skills, and match-winning plays.
-                </motion.p>
-
-                {/* Buttons */}
-                <div className="flex justify-between items-center mt-4">
-                  <motion.button
-                    className="text-slate-900 bg-amber-400 px-4 py-1.5 rounded-md text-sm hover:bg-amber-300 transition"
-                    whileHover={{ scale: 1.05, boxShadow: "0 5px 15px rgba(245, 158, 11, 0.4)" }}
-                    whileTap={{ scale: 0.95 }}
+                    <Trophy className="w-4 h-4 text-amber-400" />
+                    <span>{highlight.league}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <span>{10}k views</span>
+                  </div>
+                  <Link
+                    href={`/highlights/${highlight.id}`}
+                    className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-amber-500/20 text-amber-300 font-semibold rounded-full hover:bg-amber-500/30 transition-all duration-300"
                   >
-                    View
-                  </motion.button>
-
-                  <motion.button
-                    className="text-amber-400 text-sm hover:text-amber-300"
-                    whileHover={{ x: 5 }}
-                  >
-                    See more...
-                  </motion.button>
+                    Watch Now <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
               </motion.div>
             ))

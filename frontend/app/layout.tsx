@@ -38,6 +38,11 @@ export const metadata: Metadata = {
     ],
     url: "https://www.panthers.ng", // Replace with your domain
   },
+  icons: {
+    icon: "/logo.png",            // Main icon
+    shortcut: "/logo.png",
+    apple: "/apple-touch-icon.png",
+  },
   twitter: {
     card: "summary_large_image",
     title: "Panthers Football Academy | Nurturing Africa's Future Stars",

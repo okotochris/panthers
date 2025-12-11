@@ -11,9 +11,9 @@ function Footer() {
             <h3 className="text-xl font-bold text-amber-400 mb-4">Panthers Football Academy</h3>
             <p className="opacity-80 text-white mb-4">Founded in 2022, Panthers FA is dedicated to developing young talents through elite training, academics, and character building at our state-of-the-art facility in Lagos, Nigeria.</p>
             <div className="flex gap-4">
-              <Link href="#" className="text-amber-400 hover:text-amber-300"><Facebook size={20} /></Link>
-              <Link href="#" className="text-amber-400 hover:text-amber-300"><Instagram size={20} /></Link>
-              <Link href="#" className="text-amber-400 hover:text-amber-300"><Youtube size={20} /></Link>
+              {/* <Link href="#" className="text-amber-400 hover:text-amber-300"><Facebook size={20} /></Link> */}
+              <Link href="/pantharsfa25" className="text-amber-400 hover:text-amber-300"><Instagram size={20} /></Link>
+              {/* <Link href="#" className="text-amber-400 hover:text-amber-300"><Youtube size={20} /></Link> */}
             </div>
           </div>
           {/* Quick Links */}
@@ -31,9 +31,9 @@ function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4 text-amber-400">Contact Us</h4>
             <div className="space-y-2 text-sm">
-              <p className="flex items-center gap-2 opacity-80"><MapPin size={16} /> Lagos, Nigeria</p>
-              <p className="flex items-center gap-2 opacity-80"><Phone size={16} /> +234 123 456 789</p>
-              <p className="flex items-center gap-2 opacity-80"><Mail size={16} /> info@panthersfa.com</p>
+              <p className="flex items-center gap-2 opacity-80"><MapPin size={16} /> Benin City, Edo State, Nigeria</p>
+              <p className="flex items-center gap-2 opacity-80"><Phone size={16} /> +234 813 1031 867</p>
+              {/* <p className="flex items-center gap-2 opacity-80"><Mail size={16} /> info@panthersfa.com</p> */}
             </div>
           </div>
           {/* Newsletter */}

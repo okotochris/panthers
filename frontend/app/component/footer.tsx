@@ -9,7 +9,7 @@ function Footer() {
           {/* About */}
           <div>
             <h3 className="text-xl font-bold text-amber-400 mb-4">Panthers Football Academy</h3>
-            <p className="opacity-80 text-white mb-4">Founded in 2022, Panthers FA is dedicated to developing young talents through elite training, academics, and character building at our state-of-the-art facility in Lagos, Nigeria.</p>
+            <p className="opacity-80 text-white mb-4">Founded in 2022, Panthers FA is dedicated to developing young talents through elite training, academics, and character building at our state-of-the-art facility in Benin, Nigeria.</p>
             <div className="flex gap-4">
               {/* <Link href="#" className="text-amber-400 hover:text-amber-300"><Facebook size={20} /></Link> */}
               <Link href="/pantharsfa25" className="text-amber-400 hover:text-amber-300"><Instagram size={20} /></Link>

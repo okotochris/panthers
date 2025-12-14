@@ -4,6 +4,7 @@ const createNewsTable = require('./news');
 const createMatchTable = require('./match');
 const highlights = require('./highlight')
 const createCoachTable = require('./coach')
+const createLoginDb = require('./login')
 
 const isProduction = process.env.NODE_ENV === "production"
 const db = 
@@ -32,6 +33,7 @@ db.connect()
     createMatchTable()
     highlights()
     createCoachTable()
+    createLoginDb()
 })
 .catch(err=>{
     console.log(err)

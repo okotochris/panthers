@@ -420,4 +420,28 @@ router.patch('/api/gaols', async(req, res)=>{
     console.log(err)
   }
 })
+
+router.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const data = await db.query(
+      'SELECT * FROM login WHERE email = $1 AND password = $2',  // ← Added AND
+      [email, password]
+    );
+    if (data.rows.length === 0) {
+      return res.status(401).json({ msg: "Invalid email or password" });
+    }
+
+    // For testing only – don't send password back in real apps
+    res.status(200).json({
+      msg: "Login successful (test mode)",
+      user: data.rows[0]
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 module.exports = router;

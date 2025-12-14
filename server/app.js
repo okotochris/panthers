@@ -15,11 +15,5 @@ const PORT = process.env.PORT || 3000
 
 app.listen(PORT, async ()=>{
     console.log(`App listening on ${PORT}`)
-    db.query('INSERT INTO login(email, password) VALUES($1, $2)', ["admin@panthers.ng", "Admin@panthers111"])
-    .then(result=>{
-        console.log(result)
-    })
-    .catch(err=>{
-        console.log(err)
-    })
+    
 })

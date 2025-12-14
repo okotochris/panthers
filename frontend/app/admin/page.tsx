@@ -7,6 +7,7 @@ import Header from "../component/header";
 import Footer from "../component/footer";
 import formatFullDate from "../component/formatFullDate";
 import Rotating from "@/components/ui/rotating";
+import { useRouter } from 'next/navigation';
 
 const server = process.env.NEXT_PUBLIC_API_URL
 type Player = {
@@ -24,8 +25,8 @@ type Martches = {
   club_name: string;
   date: string;
   time: string
-   club_goal:number
-  our_goal:number
+  club_goal: number
+  our_goal: number
 }
 type News = {
   id: number,
@@ -61,11 +62,15 @@ export default function AdminPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [playerSearch, setPlayerSearch] = useState(""); // Search state
   const [matchSearch, setMatchSearch] = useState("")
-const [updateTimers, setUpdateTimers] = useState<Record<number, NodeJS.Timeout>>({}); // Timer per player
-
+  const [updateTimers, setUpdateTimers] = useState<Record<number, NodeJS.Timeout>>({}); // Timer per player
+  const router = useRouter()
 
   useEffect(() => {
     async function getData() {
+      const info = localStorage.getItem('data')
+      if (!info) {
+        return router.push('/login')
+      }
       const result = await fetch(`${server}/api/admin`)
       const data = await result.json()
       const { player, news, coach, highlight, match } = data
@@ -170,93 +175,103 @@ const [updateTimers, setUpdateTimers] = useState<Record<number, NodeJS.Timeout>>
     }
   }
   // Increment/Decrement handlers
-// Updated player stat handler with patch scheduling
-const updateStat = (
-  id: number,
-  field: "goal" | "assist" | "matchplayed" | "yellow" | "red",
-  type: "inc" | "dec"
-) => {
-  setPlayers((prev) =>
-    prev.map((p) => {
-      if (p.id !== id) return p;
+  // Updated player stat handler with patch scheduling
+  const updateStat = (
+    id: number,
+    field: "goal" | "assist" | "matchplayed" | "yellow" | "red",
+    type: "inc" | "dec"
+  ) => {
+    setPlayers((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
 
-      if (field === "yellow" || field === "red") {
+        if (field === "yellow" || field === "red") {
+          return {
+            ...p,
+            card: {
+              ...p.card,
+              [field]: type === "inc" ? p.card[field] + 1 : Math.max(0, p.card[field] - 1)
+            }
+          };
+
+        }
+
         return {
           ...p,
-          card: {
-            ...p.card,
-            [field]: type === "inc" ? p.card[field] + 1 : Math.max(0, p.card[field] - 1)
-          }
+          [field]: type === "inc" ? (p[field] as number) + 1 : Math.max(0, (p[field] as number) - 1)
         };
-        
-      }
+      })
+    );
+    schedulePatchUpdate(id)
+  };
 
-      return {
-        ...p,
-        [field]: type === "inc" ? (p[field] as number) + 1 : Math.max(0, (p[field] as number) - 1)
-      };
-    })
+
+
+  // Filtered players based on search
+  const filteredPlayers = player.filter((p) =>
+    p.name.toLowerCase().includes(playerSearch.toLowerCase())
   );
-  schedulePatchUpdate(id)
-};
+  const filteredMatch = matches.filter(m =>
+    m.club_name.toLowerCase().includes(matchSearch.toLowerCase())
+  )
+  // Auto-update function with 5s delay
+  const schedulePatchUpdate = (playerId: number) => {
+    if (updateTimers[playerId]) clearTimeout(updateTimers[playerId]);
 
+    const timer = setTimeout(async () => {
+      const p = player.find((pl) => pl.id === playerId);
+      if (!p) return;
 
+      try {
+        setIsLoading(true)
+        await fetch(`${server}/api/player/${playerId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            goal: p.goal,
+            assist: p.assist,
+            matchplayed: p.matchplayed,
+            card: p.card,
+          }),
+        });
+        console.log(`Player ${p.name} stats updated!`);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false)
+      }
+    }, 5000);
 
-// Filtered players based on search
-const filteredPlayers = player.filter((p) =>
-  p.name.toLowerCase().includes(playerSearch.toLowerCase())
-);
- const filteredMatch = matches.filter(m=>
-  m.club_name.toLowerCase().includes(matchSearch.toLowerCase())
- )
-// Auto-update function with 5s delay
-const schedulePatchUpdate = (playerId: number) => {
-  if (updateTimers[playerId]) clearTimeout(updateTimers[playerId]);
+    setUpdateTimers((prev) => ({ ...prev, [playerId]: timer }));
+  };
 
-  const timer = setTimeout(async () => {
-    const p = player.find((pl) => pl.id === playerId);
-    if (!p) return;
-
+  async function updateGoal(goal: string, id: number, field: string) {
+    setIsLoading(true)
     try {
-      setIsLoading(true)
-      await fetch(`${server}/api/player/${playerId}`, {
+      const data = await fetch(`${server}/api/gaols`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          goal: p.goal,
-          assist: p.assist,
-          matchplayed: p.matchplayed,
-          card: p.card,
-        }),
-      });
-      console.log(`Player ${p.name} stats updated!`);
+        headers: { "Content-Type": "Application/json" },
+        body: JSON.stringify({ goal, id, field })
+      })
     } catch (err) {
-      console.error(err);
-    }finally{
+      console.log(err)
+    } finally {
       setIsLoading(false)
     }
-  }, 5000);
-
-  setUpdateTimers((prev) => ({ ...prev, [playerId]: timer }));
-};
-
-async function updateGoal(goal:string, id:number, field:string) {
-  setIsLoading(true)
-  try {
-    const data = await fetch(`${server}/api/gaols`, {
-      method:"PATCH",
-      headers:{"Content-Type":"Application/json"},
-      body:JSON.stringify({goal, id, field})
-    })
-  } catch (err) {
-    console.log(err)
-  }finally{
-    setIsLoading(false)
   }
-}
+  function logout(){
+    localStorage.clear()
+    router.push('/login')
+  }
   return (
     <>
       <Header />
+      <button
+      onClick={logout}
+        className="absolute top-4 right-4 z-50 px-6 py-3 bg-red-600 text-white font-medium rounded-lg shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition transform hover:scale-105 duration-200"
+      >
+        Logout
+      </button>
       <div className="h-14 mt-4"></div>
 
 
@@ -322,156 +337,156 @@ async function updateGoal(goal:string, id:number, field:string) {
         <div className="grid md:grid-cols-3 gap-10 max-w-7xl mx-auto">
           {/* 🟡 PLAYERS SECTION */}
           <section className="bg-white/10 backdrop-blur-xl p-6 rounded-3xl shadow-xl border border-white/10">
-  <div className="flex justify-between items-center mb-6">
-    <h2 className="text-2xl font-bold text-amber-300">
-      Total Players {player.length}
-    </h2>
-    <Link
-      href="/admin/player"
-      className="bg-amber-500 px-5 py-2.5 rounded-xl text-black font-semibold hover:bg-amber-600 transition"
-    >
-      Add Player
-    </Link>
-  </div>
-
-  <input
-    type="text"
-    placeholder="Search players"
-    value={playerSearch}
-    onChange={(e) => setPlayerSearch(e.target.value)}
-    className="w-full h-12 px-5 pr-12 bg-gray-800/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent focus:bg-gray-900 transition-all duration-300 ease-in-out shadow-lg hover:shadow-amber-500/10 text-lg font-medium tracking-wide backdrop-blur-sm my-4"
-  />
-
-  <ul className="space-y-5">
-    {filteredPlayers.map((p) => (
-      <li
-        key={p.id}
-        className="bg-white/5 p-4 rounded-2xl shadow-lg border border-white/10"
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-2 relative">
-          <Link href={`/players/${p.id}`} className="hover:text-amber-500">
-            <p className="font-bold text-lg">{p.name}</p>
-          </Link>
-          <img
-            src={p.images[0]}
-            alt={p.name}
-            className="h-16 w-14 object-cover rounded-lg shadow-md"
-          />
-          <Trash2
-            className="hover:text-amber-400 absolute -top-6 -right-6"
-            onClick={() => handleDelete(p.id, "player")}
-          />
-        </div>
-
-        {/* Position */}
-        <p className="text-gray-300 text-sm mb-3">{p.position}</p>
-
-        {/* Stats */}
-        <div className="space-y-3">
-          {/* Goals */}
-          <div className="flex justify-between items-center">
-            <p className="font-medium">Goals: {p.goal}</p>
-            <div className="flex gap-2">
-              <button
-              disabled={isLoading}
-                onClick={() => updateStat(p.id, "goal", "dec")}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-amber-300">
+                Total Players {player.length}
+              </h2>
+              <Link
+                href="/admin/player"
+                className="bg-amber-500 px-5 py-2.5 rounded-xl text-black font-semibold hover:bg-amber-600 transition"
               >
-                <Minus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => updateStat(p.id, "goal", "inc")}
-                disabled={isLoading}
-                className="p-2 bg-amber-500 rounded-full hover:bg-amber-600 transition text-black"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+                Add Player
+              </Link>
             </div>
-          </div>
 
-          {/* Assists */}
-          <div className="flex justify-between items-center">
-            <p className="font-medium">Assists: {p.assist}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => updateStat(p.id, "assist", "dec")}
-                disabled={isLoading}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => updateStat(p.id, "assist", "inc")}
-                disabled={isLoading}
-                className="p-2 bg-amber-500 rounded-full hover:bg-amber-600 transition text-black"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+            <input
+              type="text"
+              placeholder="Search players"
+              value={playerSearch}
+              onChange={(e) => setPlayerSearch(e.target.value)}
+              className="w-full h-12 px-5 pr-12 bg-gray-800/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent focus:bg-gray-900 transition-all duration-300 ease-in-out shadow-lg hover:shadow-amber-500/10 text-lg font-medium tracking-wide backdrop-blur-sm my-4"
+            />
 
-          {/* Match Played */}
-          <div className="flex justify-between items-center">
-            <p className="font-medium">Matches: {p.matchplayed}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => updateStat(p.id, "matchplayed", "dec")}
-                disabled={isLoading}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => updateStat(p.id, "matchplayed", "inc")}
-                disabled={isLoading}
-                className="p-2 bg-amber-500 rounded-full hover:bg-amber-600 transition text-black"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+            <ul className="space-y-5">
+              {filteredPlayers.map((p) => (
+                <li
+                  key={p.id}
+                  className="bg-white/5 p-4 rounded-2xl shadow-lg border border-white/10"
+                >
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-2 relative">
+                    <Link href={`/players/${p.id}`} className="hover:text-amber-500">
+                      <p className="font-bold text-lg">{p.name}</p>
+                    </Link>
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="h-16 w-14 object-cover rounded-lg shadow-md"
+                    />
+                    <Trash2
+                      className="hover:text-amber-400 absolute -top-6 -right-6"
+                      onClick={() => handleDelete(p.id, "player")}
+                    />
+                  </div>
 
-          {/* Cards */}
-          <div className="flex justify-between items-center">
-            <p className="font-medium">Yellow: {p.card.yellow}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => updateStat(p.id, "yellow", "dec")}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => updateStat(p.id, "yellow", "inc")}
-                disabled={isLoading}
-                className="p-2 bg-yellow-500 rounded-full hover:bg-yellow-600 transition text-black"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="font-medium">Red: {p.card.red}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => updateStat(p.id, "red", "dec")}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => updateStat(p.id, "red", "inc")}
-                disabled={isLoading}
-                className="p-2 bg-red-500 rounded-full hover:bg-red-600 transition text-black"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </li>
-    ))}
-  </ul>
-</section>
+                  {/* Position */}
+                  <p className="text-gray-300 text-sm mb-3">{p.position}</p>
+
+                  {/* Stats */}
+                  <div className="space-y-3">
+                    {/* Goals */}
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium">Goals: {p.goal}</p>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={isLoading}
+                          onClick={() => updateStat(p.id, "goal", "dec")}
+                          className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => updateStat(p.id, "goal", "inc")}
+                          disabled={isLoading}
+                          className="p-2 bg-amber-500 rounded-full hover:bg-amber-600 transition text-black"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Assists */}
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium">Assists: {p.assist}</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateStat(p.id, "assist", "dec")}
+                          disabled={isLoading}
+                          className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => updateStat(p.id, "assist", "inc")}
+                          disabled={isLoading}
+                          className="p-2 bg-amber-500 rounded-full hover:bg-amber-600 transition text-black"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Match Played */}
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium">Matches: {p.matchplayed}</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateStat(p.id, "matchplayed", "dec")}
+                          disabled={isLoading}
+                          className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => updateStat(p.id, "matchplayed", "inc")}
+                          disabled={isLoading}
+                          className="p-2 bg-amber-500 rounded-full hover:bg-amber-600 transition text-black"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Cards */}
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium">Yellow: {p.card.yellow}</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateStat(p.id, "yellow", "dec")}
+                          className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => updateStat(p.id, "yellow", "inc")}
+                          disabled={isLoading}
+                          className="p-2 bg-yellow-500 rounded-full hover:bg-yellow-600 transition text-black"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="font-medium">Red: {p.card.red}</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateStat(p.id, "red", "dec")}
+                          className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => updateStat(p.id, "red", "inc")}
+                          disabled={isLoading}
+                          className="p-2 bg-red-500 rounded-full hover:bg-red-600 transition text-black"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
 
 
           {/* 🔵 MATCHES SECTION */}
@@ -480,7 +495,7 @@ async function updateGoal(goal:string, id:number, field:string) {
               <h2 className="text-2xl font-bold text-amber-300">Matches {matches.length}</h2>
               <Link href={"/admin/martch"}>
                 <button
-                disabled={isLoading}
+                  disabled={isLoading}
                   className="bg-amber-500 px-5 py-2.5 rounded-xl text-black font-semibold hover:bg-amber-600 transition"
                 >
                   Add Match
@@ -489,7 +504,7 @@ async function updateGoal(goal:string, id:number, field:string) {
             </div>
             <input
               value={matchSearch}
-              onChange={(e)=>setMatchSearch(e.target.value)}
+              onChange={(e) => setMatchSearch(e.target.value)}
               type="text"
               placeholder="Search Opponent club name"
               className="w-full h-12 px-5 pr-12 bg-gray-800/90 border border-gray-700 
@@ -508,27 +523,27 @@ async function updateGoal(goal:string, id:number, field:string) {
                     className="bg-white/5 p-4 rounded-2xl shadow-lg border border-white/10"
                   >
                     <p className="font-bold text-lg">Panthers vs {m.club_name}</p>
-                     <p className="text-gray-100 text-lg">
-                      Our Goals: 
-                      <span 
-                      className="pl-2.5 text-amber-500" 
-                      contentEditable
-                      suppressContentEditableWarning={true}
-                      onInput={(e)=>updateGoal(e.currentTarget.textContent, m.id, 'our_goal')}
-                      >
-                        {m.our_goal || 0}</span>
-                       </p>
-                      <p className="text-gray-100 text-lg">
-                        Opponent Goals: 
-                        <span 
-                        className="pl-2.5 text-amber-500" 
+                    <p className="text-gray-100 text-lg">
+                      Our Goals:
+                      <span
+                        className="pl-2.5 text-amber-500"
                         contentEditable
                         suppressContentEditableWarning={true}
-                        onInput={(e)=>updateGoal(e.currentTarget.textContent, m.id, "club_goal")}
-                        >
-                          {m.club_goal || 0}
-                          </span> 
-                        </p>
+                        onInput={(e) => updateGoal(e.currentTarget.textContent, m.id, 'our_goal')}
+                      >
+                        {m.our_goal || 0}</span>
+                    </p>
+                    <p className="text-gray-100 text-lg">
+                      Opponent Goals:
+                      <span
+                        className="pl-2.5 text-amber-500"
+                        contentEditable
+                        suppressContentEditableWarning={true}
+                        onInput={(e) => updateGoal(e.currentTarget.textContent, m.id, "club_goal")}
+                      >
+                        {m.club_goal || 0}
+                      </span>
+                    </p>
                     <p className="text-gray-400 text-sm">{formatFullDate(m.date)} Time: {m.time}</p>
                   </li>
                   <Trash2 className="absolute top-0 right-0 hover:text-amber-400"
@@ -553,7 +568,7 @@ async function updateGoal(goal:string, id:number, field:string) {
                 Add Coach
               </Link>
             </div>
-          
+
             <ul className="space-y-5">
               {coaches.map((c) => (
                 <div className="relative" key={c.id}>
@@ -583,7 +598,7 @@ async function updateGoal(goal:string, id:number, field:string) {
                 Add Highlight
               </button>
             </div>
-           
+
             <ul className="space-y-5">
               {highlight.map((c) => (
                 <div className="relative" key={c.id}>
@@ -610,14 +625,14 @@ async function updateGoal(goal:string, id:number, field:string) {
               </h2>
               <Link href={'/admin/news'}>
                 <button
-                disabled={isLoading}
+                  disabled={isLoading}
                   className="bg-amber-500 px-5 py-2.5 rounded-xl text-black font-semibold hover:bg-amber-600 transition"
                 >
                   Add News
                 </button>
               </Link>
             </div>
-          
+
             <ul className="space-y-5">
               {news.map((c) => (
                 <div className="relative" key={c.id}>
@@ -746,7 +761,7 @@ async function updateGoal(goal:string, id:number, field:string) {
           `}</style>
         </>
       )}
-    {isLoading && <Rotating />}
+      {isLoading && <Rotating />}
     </>
   );
 }

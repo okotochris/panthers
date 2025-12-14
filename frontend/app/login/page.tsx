@@ -29,7 +29,7 @@ export default function LoginComponent() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.msg|| 'Invalid email or password');
+        throw new Error(data.msg|| 'Wrong Invalid email or password');
       }
       localStorage.setItem("data", data)
       router.push("/admin")
